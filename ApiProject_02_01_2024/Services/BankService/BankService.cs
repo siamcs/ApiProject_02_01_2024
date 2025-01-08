@@ -1,8 +1,9 @@
 ﻿using ApiProject_02_01_2024.DTOs;
 using ApiProject_02_01_2024.Models;
+using ApiProject_02_01_2024.Repository;
 using Microsoft.EntityFrameworkCore;
 
-using SalesManagement.Repository;
+
 
 using System.Net.NetworkInformation;
 
@@ -37,8 +38,7 @@ namespace ApiProject_02_01_2024.Services.BankService
                 BankName=b.BankName,    
                 LDate=b.LDate,
                 ModifyDate=b.ModifyDate,
-               // LIP = b.LIP,
-               //LMAC = b.LMAC
+               
 
             }).ToList();
                  
@@ -85,7 +85,7 @@ namespace ApiProject_02_01_2024.Services.BankService
             }
             catch(Exception ex)
             {
-                Console.WriteLine(ex.Message)
+                Console.WriteLine(ex.Message);
                 await _bankRepository.RollbackTransactionAsync();
                 return false;
             }

@@ -2,11 +2,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
-using SalesManagement.Repository;
+
 using System.Collections;
 using System.Linq.Expressions;
 
-namespace SalesManagement.Repository
+namespace ApiProject_02_01_2024.Repository
 {
  
     public class GenericRepository<T, TKey> : IGenericRepository<T, TKey> where T : class

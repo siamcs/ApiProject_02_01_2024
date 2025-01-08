@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace SalesManagement.Repository
+namespace ApiProject_02_01_2024.Repository
 {
    
     public interface IGenericRepository<T, TKey> where T : class
