@@ -17,20 +17,22 @@ namespace ApiProject_02_01_2024.Controllers
         {
             _bankService = bankService;
         }
-
+        
 
         #region Get
+       
 
 
-
-        [HttpGet("{id:int}")]
+        //[HttpGet]
+        [HttpGet("{id:int?}")]
         [ProducesResponseType(StatusCodes.Status200OK)] // For successful responses
         [ProducesResponseType(StatusCodes.Status404NotFound)] // If the bank is not found
         [ProducesResponseType(StatusCodes.Status500InternalServerError)] // For exceptions
-        public async Task<IActionResult> Index(int? id)
+        public async Task<IActionResult> Index(int ? id)
         {
             try
             {
+                
                 BankVM bankVM = new BankVM();
 
                 if (id.HasValue && id > 0)
@@ -99,48 +101,12 @@ namespace ApiProject_02_01_2024.Controllers
             }
         }
 
-
-        //[HttpPost("Create")]
-        //[ProducesResponseType(StatusCodes.Status200OK)]
-        //[ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        //public async Task<IActionResult> Create(BankVM bankVM)
-        //{
-        //    try
-        //    {
-        //        if (string.IsNullOrEmpty(bankVM.BankCode))
-        //        {
-        //            bankVM.BankCode = await _bankService.GenerateNextBankCodeAsync();
-        //        }
-
-        //        if (bankVM.Id == 0)
-        //        {
-        //            var result = await _bankService.SaveAsync(bankVM);
-        //            if (!result)
-        //            {
-        //                return StatusCode(500, "Failed to save the bank.");
-        //            }
-        //            return Ok("Saved Successfully");
-        //        }
-        //        else
-        //        {
-        //            var result = await _bankService.UpdateAsync(bankVM);
-        //            if (!result)
-        //            {
-        //                return StatusCode(500, "Failed to update the bank.");
-        //            }
-        //            return Ok("Updated Successfully");
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, ex.Message);
-        //    }
-        //}
+        
         #endregion
 
 
         #region Delete
-        [HttpPost("Delete")]
+        [HttpDelete("Delete")]
         public async Task<IActionResult> Delete(int id)
         {
             try
@@ -149,13 +115,9 @@ namespace ApiProject_02_01_2024.Controllers
                 var result = await _bankService.DeleteAsync(id);
                 if (!result)
                 {
-                    errorMessage.Add($"Bank with ID {id} was not found or has already been deleted.");
+                    return NotFound();
                 }
-                if (errorMessage.Any())
-                {
-                    return StatusCode(404, string.Join("\n", errorMessage));
-                }
-
+                
 
                 return Ok("Deleted Successfully");
             }

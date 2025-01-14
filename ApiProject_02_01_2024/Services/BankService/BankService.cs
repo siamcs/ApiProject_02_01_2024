@@ -76,7 +76,6 @@ namespace ApiProject_02_01_2024.Services.BankService
                 bank.BankCode = await GenerateNextBankCodeAsync();
                 bank.BankName = bankVM.BankName;
                 bank.LDate = DateTime.Now;
-                bank.ModifyDate = DateTime.Now;
                 bank.LIP = GetLocalIP();
                 bank.LMAC = GetMacAddress();
                 await _bankRepository.AddAsync(bank);
@@ -101,7 +100,6 @@ namespace ApiProject_02_01_2024.Services.BankService
                 bank.BankCode = bankVM.BankCode;
                 bank.BankName = bankVM.BankName;
                 bank.ModifyDate = DateTime.Now;
-                bank.LDate = DateTime.Now;
                 await _bankRepository.UpdateAsync(bank);
                 await _bankRepository.CommitTransactionAsync();
                 return true;
