@@ -68,11 +68,11 @@ namespace ApiProject_02_01_2024.Services.DesignationService
             {
                 Designation designation = new Designation();
                 designation.DesignationCode = await GenerateNextDesignationCodeAsync();
-                designation.DesignationName = designationVM.DesignationName;
-                designation.ShortName = designationVM.ShortName ?? "";
+                designation.DesignationName = designationVM.DesignationName ?? string.Empty;
+                designation.ShortName = designationVM.ShortName ?? string.Empty;
                 designation.LDate = DateTime.Now;
-                designation.LIP = GetLocalIP();
-                designation.LMAC = GetMacAddress();
+                designation.LIP = GetLocalIP() ?? string.Empty;
+                designation.LMAC = GetMacAddress() ?? string.Empty;
                 await _designationRepository.AddAsync(designation);
                 await _designationRepository.CommitTransactionAsync();
                 return true;
