@@ -16,7 +16,8 @@ namespace ApiProject_02_01_2024.Services.BankService
         IEnumerable<CommonSelectModelVM> DropSelection();
         string GetLocalIP();
         string GetMacAddress();
-        Task<bool> IsBankNameUniqueAsync(string bankName, int? id); 
+        Task<bool> IsBankNameUniqueAsync(string bankName, int? id);
+        Task<bool> IsExistAsync(string name);
 
     }
 }

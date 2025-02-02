@@ -9,6 +9,7 @@ namespace ApiProject_02_01_2024.Data
         {
         }
         public DbSet<Bank>? Banks { get; set; }  
+        public DbSet<Designation> Designations { get; set; }
         
     }
 }

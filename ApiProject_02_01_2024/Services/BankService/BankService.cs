@@ -59,8 +59,7 @@ namespace ApiProject_02_01_2024.Services.BankService
                 BankName = bank.BankName,
                 LDate = bank.LDate,
                 ModifyDate = bank.ModifyDate,
-                //LIP=bank.LIP,
-                //LMAC=bank.LMAC
+            
               
                 
             };
@@ -99,13 +98,16 @@ namespace ApiProject_02_01_2024.Services.BankService
                 if (bank == null) { return false; }
                 bank.BankCode = bankVM.BankCode;
                 bank.BankName = bankVM.BankName;
+                bank.LIP = GetLocalIP();
+                bank.LMAC = GetMacAddress();
                 bank.ModifyDate = DateTime.Now;
                 await _bankRepository.UpdateAsync(bank);
                 await _bankRepository.CommitTransactionAsync();
                 return true;
             }
-            catch(Exception)
+            catch(Exception ex)
             {
+                Console.WriteLine(ex);
                 await _bankRepository.RollbackTransactionAsync();
                 return false;
             }
@@ -163,7 +165,10 @@ namespace ApiProject_02_01_2024.Services.BankService
 
             return !bankExists;
         }
-
+        public async Task<bool> IsExistAsync(string name)
+        {
+            return await _bankRepository.All().AnyAsync(x => x.BankName == name);
+        }
         #region IPandMacAddress
 
         public string GetLocalIP()

@@ -1,27 +1,21 @@
-﻿using ApiProject_02_01_2024.DTOs;
-using ApiProject_02_01_2024.Models;
-using ApiProject_02_01_2024.Services.BankService;
-using ApiProject_02_01_2024.Services.CommonService;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
+﻿
+using ApiProject_02_01_2024.DTOs;
+using ApiProject_02_01_2024.Services.DesignationService;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApiProject_02_01_2024.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class BankController : ControllerBase
+    public class DesignationController : ControllerBase
     {
+        private readonly IDesignationService _designationService;
 
-        private readonly IBankService _bankService;
-       
-        public BankController(IBankService bankService)
+        public DesignationController(IDesignationService designationService)
         {
-            _bankService = bankService;
-            //this.commonService = commonService;
+            _designationService = designationService;
+          
         }
-
-
 
         #region Get
 
@@ -31,18 +25,18 @@ namespace ApiProject_02_01_2024.Controllers
             try
             {
 
-                BankVM bankVM = new BankVM();
+                DesignationVM designationVM = new DesignationVM();
 
                 if (id.HasValue && id > 0)
                 {
-                    bankVM = await _bankService.GetByIdAsync(id.Value);
-                    if (bankVM == null)
+                    designationVM = await _designationService.GetByIdAsync(id.Value);
+                    if (designationVM == null)
                     {
                         return NotFound();
                     }
                 }
 
-                return Ok(new { SelectedBank = bankVM});
+                return Ok(new { data = designationVM });
             }
             catch (Exception ex)
             {
@@ -58,9 +52,9 @@ namespace ApiProject_02_01_2024.Controllers
         {
             try
             {
-                var bankList = await _bankService.GetAllAsync();
+                var designations = await _designationService.GetAllAsync();
 
-                return Ok(new { AllBanks = bankList  });
+                return Ok(new { AllData = designations });
             }
             catch (Exception ex)
             {
@@ -73,35 +67,34 @@ namespace ApiProject_02_01_2024.Controllers
 
         #region Post
         [HttpPost("Create")]
-        public async Task<IActionResult> Create([FromBody] BankVM bankVM)
+        public async Task<IActionResult> Create(DesignationVM  designationVM)
         {
             try
             {
 
-                if(await _bankService.IsExistAsync(bankVM.BankName))
+                if (string.IsNullOrEmpty(designationVM.DesignationCode))
                 {
-                    return Ok(new { isSuccess = false, message = $"Already  Exists!", isDuplicate = true });
-                }
-
-                if (string.IsNullOrEmpty(bankVM.BankCode))
-                {
-                    bankVM.BankCode = await _bankService.GenerateNextBankCodeAsync();
+                    designationVM.DesignationCode = await _designationService.GenerateNextDesignationCodeAsync();
                 }
 
 
-                if (bankVM.Id == 0)
+                if (designationVM.DesignationAutoId == 0)
                 {
-                    var result = await _bankService.SaveAsync(bankVM);
+                    var result = await _designationService.SaveAsync(designationVM);
                     if (!result)
                     {
-                        return StatusCode(500, "Failed to save the bank.");
+                        return StatusCode(500, "Failed to save.");
                     }
                     return Ok("Saved Successfully");
                 }
                 else
                 {
-                   
-                    return NotFound();
+                    var result = await _designationService.UpdateAsync(designationVM);
+                    if (!result)
+                    {
+                        return StatusCode(500, "Failed to update the.");
+                    }
+                    return Ok("Updated Successfully");
                 }
 
 
@@ -112,30 +105,6 @@ namespace ApiProject_02_01_2024.Controllers
             }
         }
 
-
-        [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] BankVM bankVM)
-        {
-            try
-            {
-                if (id != bankVM.Id)
-                {
-                    return BadRequest("Bank ID mismatch");
-                }
-
-                var result = await _bankService.UpdateAsync(bankVM);
-                if (!result)
-                {
-                    return StatusCode(500, "Failed to update the bank.");
-                }
-
-                return Ok("Updated Successfully");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
 
         #endregion
 
@@ -146,13 +115,13 @@ namespace ApiProject_02_01_2024.Controllers
         {
             try
             {
-                Console.WriteLine($"Received ID: {id}"); // Debugging
-                var result = await _bankService.DeleteAsync(id);
+               
+                var result = await _designationService.DeleteAsync(id);
                 if (!result)
                 {
                     return NotFound();
                 }
-                
+
 
                 return Ok("Deleted Successfully");
             }
@@ -168,18 +137,18 @@ namespace ApiProject_02_01_2024.Controllers
 
 
         #region Delete multiple
-        
+
         [HttpPost("DeleteMultiple")]
         public async Task<IActionResult> DeleteMultiple([FromBody] List<int> ids)
         {
-            
+
             try
             {
                 foreach (var id in ids)
                 {
                     try
                     {
-                        var result = await _bankService.DeleteAsync(id);
+                        var result = await _designationService.DeleteAsync(id);
                         if (!result)
                         {
                             return NotFound();
@@ -203,19 +172,13 @@ namespace ApiProject_02_01_2024.Controllers
         #endregion
 
         #region Next Bank Code 
-        [HttpGet("GenerateNextBankCode")]
-        public async Task<IActionResult> GenerateNextBankCode()
+        [HttpGet("GenerateNextDesignationCode")]
+        public async Task<IActionResult> GenerateNextDesignationCodeAsync()
         {
-            var nextCode = await _bankService.GenerateNextBankCodeAsync();
+            var nextCode = await _designationService.GenerateNextDesignationCodeAsync();
             return Ok(nextCode);
         }
 
         #endregion
-
-      
-
-
-       
-
     }
 }

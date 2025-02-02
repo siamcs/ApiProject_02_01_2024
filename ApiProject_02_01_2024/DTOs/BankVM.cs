@@ -20,18 +20,17 @@ namespace ApiProject_02_01_2024.DTOs
         [Column(TypeName = "nvarchar(100)")]
         public string? BankName { get; set; } = string.Empty;
 
+        [DisplayFormat(DataFormatString = "{0:dd/MM/yyyy HH:mm}", ApplyFormatInEditMode = true)]
         public DateTime? LDate { get; set; }
 
 
-        //Last modify date
+
         [DisplayName("Modify Date")]
         [DisplayFormat(DataFormatString = "{0:dd/MM/yyyy HH:mm}", ApplyFormatInEditMode = true)]
-        [Column(TypeName = "datetime")]
+ 
         public DateTime? ModifyDate { get; set; }
 
-        //public string? LIP { get; set; } = string.Empty;
 
-        //public string? LMAC { get; set; } = string.Empty;
 
     }
 }

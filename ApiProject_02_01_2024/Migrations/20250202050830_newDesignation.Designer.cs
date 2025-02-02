@@ -4,6 +4,7 @@ using ApiProject_02_01_2024.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ApiProject_02_01_2024.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    partial class AppDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250202050830_newDesignation")]
+    partial class newDesignation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -65,49 +68,6 @@ namespace ApiProject_02_01_2024.Migrations
                         .IsUnique();
 
                     b.ToTable("Banks");
-                });
-
-            modelBuilder.Entity("ApiProject_02_01_2024.Models.Designation", b =>
-                {
-                    b.Property<int>("DesignationAutoId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DesignationAutoId"));
-
-                    b.Property<string>("DesignationCode")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("DesignationName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime?>("LDate")
-                        .HasColumnType("datetime");
-
-                    b.Property<string>("LIP")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("LMAC")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("LUser")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<DateTime?>("ModifyDate")
-                        .HasColumnType("datetime");
-
-                    b.Property<string>("ShortName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("DesignationAutoId");
-
-                    b.ToTable("Designations");
                 });
 #pragma warning restore 612, 618
         }
