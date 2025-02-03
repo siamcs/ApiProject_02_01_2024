@@ -109,6 +109,34 @@ namespace ApiProject_02_01_2024.Migrations
 
                     b.ToTable("Designations");
                 });
+
+            modelBuilder.Entity("ApiProject_02_01_2024.Models.HrmEmpDigitalSignature", b =>
+                {
+                    b.Property<int>("AutoId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AutoId"));
+
+                    b.Property<int>("DesignationAutoId")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("DigitalSignature")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<long>("ImgSize")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ImgType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("AutoId");
+
+                    b.ToTable("HrmEmpDigitalSignatures");
+                });
 #pragma warning restore 612, 618
         }
     }

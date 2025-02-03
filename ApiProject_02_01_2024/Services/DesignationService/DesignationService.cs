@@ -4,16 +4,18 @@ using ApiProject_02_01_2024.Repository;
 using Microsoft.EntityFrameworkCore;
 
 using System.Net.NetworkInformation;
+using static Dapper.SqlMapper;
 
 namespace ApiProject_02_01_2024.Services.DesignationService
 {
     public class DesignationService:IDesignationService
     {
         private readonly IGenericRepository<Designation, int> _designationRepository;
-
-        public DesignationService(IGenericRepository<Designation, int> designationRepository)
+        private readonly IGenericRepository<HrmEmpDigitalSignature, int> hrmPhoto;
+        public DesignationService(IGenericRepository<Designation, int> designationRepository, IGenericRepository<HrmEmpDigitalSignature, int> hrmPhoto)
         {
             _designationRepository = designationRepository;
+            this.hrmPhoto = hrmPhoto;
         }
 
 
@@ -70,15 +72,38 @@ namespace ApiProject_02_01_2024.Services.DesignationService
                 designation.DesignationCode = await GenerateNextDesignationCodeAsync();
                 designation.DesignationName = designationVM.DesignationName ?? string.Empty;
                 designation.ShortName = designationVM.ShortName ?? string.Empty;
-                designation.LDate = DateTime.Now;
+                designation.LDate = designationVM.LDate ?? DateTime.Now;
+                designation.ModifyDate = designationVM.ModifyDate;
                 designation.LIP = GetLocalIP() ?? string.Empty;
                 designation.LMAC = GetMacAddress() ?? string.Empty;
                 await _designationRepository.AddAsync(designation);
+
+                if (designationVM.Photo != null && designationVM.Photo.Length > 0)
+                {
+                    using (var memoryStream = new MemoryStream())
+                    {
+
+                        await designationVM.Photo.CopyToAsync(memoryStream);
+
+
+                        HrmEmpDigitalSignature photo = new HrmEmpDigitalSignature();
+                        {
+                            photo. DesignationAutoId = designation.DesignationAutoId;
+                            photo.DigitalSignature = memoryStream.ToArray();
+                            photo.ImgType = designationVM.Photo.ContentType;
+                            photo.ImgSize = designationVM.Photo.Length;
+                        };
+
+                        // Add photo to the database
+                        await hrmPhoto.AddAsync(photo);
+                    }
+                }
                 await _designationRepository.CommitTransactionAsync();
                 return true;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine(ex);
                 await _designationRepository.RollbackTransactionAsync();
                 return false;
             }
@@ -100,10 +125,55 @@ namespace ApiProject_02_01_2024.Services.DesignationService
                 designation.DesignationCode = designationVM.DesignationCode;
                 designation.DesignationName = designationVM.DesignationName;
                 designation.ShortName = designationVM.ShortName ?? " ";
-                designation.ModifyDate = DateTime.Now;
+                designation.LDate = designationVM.LDate ?? new DateTime();
+                designation.ModifyDate = designationVM.ModifyDate ?? new DateTime();
                 designation.LIP = GetLocalIP();
                 designation.LMAC = GetMacAddress();
                 await _designationRepository.UpdateAsync(designation);
+
+                if (designationVM.IsClearPhoto)
+                {
+                    var existingPhoto = await hrmPhoto.All().Where(x => x.DesignationAutoId == designation.DesignationAutoId).ToListAsync();
+                    await hrmPhoto.DeleteRangeAsync(existingPhoto);
+                }
+
+
+                if (designationVM.Photo != null && designationVM.Photo.Length > 0)
+                {
+                    var existingPhotos = await hrmPhoto.All().Where(x => x.DesignationAutoId == designation.DesignationAutoId).ToListAsync();
+                    if (existingPhotos.Any())
+                    {
+                        await hrmPhoto.DeleteRangeAsync(existingPhotos);
+                    }
+
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        await designationVM.Photo.CopyToAsync(memoryStream);
+
+                        HrmEmpDigitalSignature photo = new HrmEmpDigitalSignature
+                        {
+                            DesignationAutoId = designation.DesignationAutoId,
+                            DigitalSignature = memoryStream.ToArray(),
+                            ImgType = designationVM.Photo.ContentType,
+                           ImgSize = designationVM.Photo.Length
+                        };
+
+                        await hrmPhoto.UpdateAsync(photo);
+                    }
+                }
+                else
+                {
+
+                    var existingPhoto = await hrmPhoto.All().Where(x => x.DesignationAutoId == designation.DesignationAutoId).FirstOrDefaultAsync();
+                    if (existingPhoto != null)
+                    {
+                        existingPhoto.ImgType = existingPhoto.ImgType;
+                        existingPhoto.ImgSize = existingPhoto.ImgSize;
+                        await hrmPhoto.UpdateAsync(existingPhoto);
+                    }
+                }
+
+
                 await _designationRepository.CommitTransactionAsync();
                 return true;
             }
@@ -120,6 +190,11 @@ namespace ApiProject_02_01_2024.Services.DesignationService
             try
             {
                 var designation = await _designationRepository.GetByIdAsync(id);
+                var photos = hrmPhoto.All().Where(p => p.DesignationAutoId==id).ToList();
+                foreach (var photo in photos)
+                {
+                    hrmPhoto.DeleteAsync(photo);
+                }
 
                 if (designation == null)
                 {

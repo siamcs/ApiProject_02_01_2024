@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ApiProject_02_01_2024.Migrations
 {
     [DbContext(typeof(AppDBContext))]
-    [Migration("20250202105821_newDesignationtt")]
-    partial class newDesignationtt
+    [Migration("20250203103500_Tesstttttt")]
+    partial class Tesstttttt
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -111,6 +111,34 @@ namespace ApiProject_02_01_2024.Migrations
                     b.HasKey("DesignationAutoId");
 
                     b.ToTable("Designations");
+                });
+
+            modelBuilder.Entity("ApiProject_02_01_2024.Models.HrmEmpDigitalSignature", b =>
+                {
+                    b.Property<int>("AutoId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AutoId"));
+
+                    b.Property<int>("DesignationAutoId")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("DigitalSignature")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<long>("ImgSize")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ImgType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("AutoId");
+
+                    b.ToTable("HrmEmpDigitalSignatures");
                 });
 #pragma warning restore 612, 618
         }

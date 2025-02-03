@@ -36,7 +36,7 @@ namespace ApiProject_02_01_2024.Controllers
                     }
                 }
 
-                return Ok(new { data = designationVM });
+                return Ok(new { dataById = designationVM });
             }
             catch (Exception ex)
             {
@@ -67,37 +67,24 @@ namespace ApiProject_02_01_2024.Controllers
 
         #region Post
         [HttpPost("Create")]
-        public async Task<IActionResult> Create(DesignationVM  designationVM)
+        public async Task<IActionResult> Create(DesignationVM designationVM)
         {
             try
             {
-
+               
                 if (string.IsNullOrEmpty(designationVM.DesignationCode))
                 {
                     designationVM.DesignationCode = await _designationService.GenerateNextDesignationCodeAsync();
                 }
 
-
-                if (designationVM.DesignationAutoId == 0)
+                
+                var result = await _designationService.SaveAsync(designationVM);
+                if (!result)
                 {
-                    var result = await _designationService.SaveAsync(designationVM);
-                    if (!result)
-                    {
-                        return StatusCode(500, "Failed to save.");
-                    }
-                    return Ok("Saved Successfully");
-                }
-                else
-                {
-                    var result = await _designationService.UpdateAsync(designationVM);
-                    if (!result)
-                    {
-                        return StatusCode(500, "Failed to update the.");
-                    }
-                    return Ok("Updated Successfully");
+                    return StatusCode(500, "Failed to save.");
                 }
 
-
+                return Ok("Saved Successfully");
             }
             catch (Exception ex)
             {
@@ -105,6 +92,30 @@ namespace ApiProject_02_01_2024.Controllers
             }
         }
 
+
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> Update(int id, [FromBody] DesignationVM  designationVM)
+        {
+            try
+            {
+                if (id != designationVM.DesignationAutoId)
+                {
+                    return BadRequest("Bank ID mismatch");
+                }
+
+                var result = await _designationService.UpdateAsync(designationVM);
+                if (!result)
+                {
+                    return StatusCode(500, "Failed to update the bank.");
+                }
+
+                return Ok("Updated Successfully");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
 
         #endregion
 
@@ -172,8 +183,8 @@ namespace ApiProject_02_01_2024.Controllers
         #endregion
 
         #region Next Bank Code 
-        [HttpGet("GenerateNextDesignationCode")]
-        public async Task<IActionResult> GenerateNextDesignationCodeAsync()
+        [HttpGet("GenerateNextCode")]
+        public async Task<IActionResult> GenerateNextCode()
         {
             var nextCode = await _designationService.GenerateNextDesignationCodeAsync();
             return Ok(nextCode);

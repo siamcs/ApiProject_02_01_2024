@@ -50,10 +50,11 @@ namespace ApiProject_02_01_2024.Models
 
 
 
-        [ DisplayName("Modify Date")]
+    
         [DisplayFormat(DataFormatString = "{0:dd/MM/yyyy HH:mm}", ApplyFormatInEditMode = true)]
         [Column(TypeName = "datetime")]
-        public DateTime? ModifyDate { get; set; } 
+        public DateTime? ModifyDate { get; set; }
+
 
     }
 }
