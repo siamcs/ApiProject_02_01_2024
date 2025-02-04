@@ -15,7 +15,6 @@ namespace ApiProject_02_01_2024.Services.DesignationService
         string GetLocalIP();
         string GetMacAddress();
         Task<bool> IsDesignatioNameUniqueAsync(string designationName, int? id);
-        Task<List<string>> GetAllDesignationCodesAsync();
-        Task<string> GetLastInsertedDesignationCodeAsync();
+        Task<bool> IsExistAsync(string name);
     }
 }

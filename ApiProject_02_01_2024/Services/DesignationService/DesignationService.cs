@@ -40,11 +40,21 @@ namespace ApiProject_02_01_2024.Services.DesignationService
                 DesignationName=d.DesignationName,
                 ShortName = d.ShortName,
                 LDate = d.LDate,
-                ModifyDate = d.ModifyDate
-
+                ModifyDate = d.ModifyDate,
+                PhotoUrl = GetPhotoUrl(d.DesignationAutoId)
             }).ToList();
         }
-
+        private string? GetPhotoUrl(int designationId)
+        {
+            var photo = hrmPhoto.All().FirstOrDefault(p => p.DesignationAutoId == designationId);
+            if (photo != null && photo.DigitalSignature != null)
+            {
+                var base64 = Convert.ToBase64String(photo.DigitalSignature);
+                var imgType = photo.ImgType ?? "image/png"; // Default to PNG if null
+                return $"data:{imgType};base64,{base64}";
+            }
+            return null; // Return null if no image exists
+        }
         public async Task<DesignationVM> GetByIdAsync(int id)
         {
             var designation = await _designationRepository.GetByIdAsync(id);
@@ -184,27 +194,37 @@ namespace ApiProject_02_01_2024.Services.DesignationService
             }
             
         }
+
+
         public async Task<bool> DeleteAsync(int id)
         {
             await _designationRepository.BeginTransactionAsync();
             try
             {
                 var designation = await _designationRepository.GetByIdAsync(id);
-                var photos = hrmPhoto.All().Where(p => p.DesignationAutoId==id).ToList();
-                foreach (var photo in photos)
-                {
-                    hrmPhoto.DeleteAsync(photo);
-                }
-
                 if (designation == null)
                 {
+                    await _designationRepository.RollbackTransactionAsync();
                     return false;
                 }
+
+                var photos = await hrmPhoto.All()
+                                           .Where(p => p.DesignationAutoId == id)
+                                           .ToListAsync(); 
+
+                if (photos.Any())
+                {
+                    foreach (var photo in photos)
+                    {
+                        await hrmPhoto.DeleteAsync(photo); 
+                    }
+                }
+
                 await _designationRepository.DeleteAsync(designation);
                 await _designationRepository.CommitTransactionAsync();
                 return true;
             }
-            catch(DbUpdateConcurrencyException)
+            catch (DbUpdateConcurrencyException)
             {
                 await _designationRepository.RollbackTransactionAsync();
                 return false;
@@ -214,8 +234,8 @@ namespace ApiProject_02_01_2024.Services.DesignationService
                 await _designationRepository.RollbackTransactionAsync();
                 return false;
             }
-            
         }
+
 
         public async Task<bool> IsDesignatioNameUniqueAsync(string designationName, int? id)
         {
@@ -278,25 +298,11 @@ namespace ApiProject_02_01_2024.Services.DesignationService
             return nexCode.ToString("D2");
         }
 
-        public async Task<List<string>> GetAllDesignationCodesAsync()
+
+        public async Task<bool> IsExistAsync(string name)
         {
-            var designations = await _designationRepository.GetAllAsync();
-            return designations
-                .OrderBy(d => d.DesignationCode)
-                .Select(d => d.DesignationCode)
-                .ToList();
+            return await _designationRepository.All().AnyAsync(x => x.DesignationName == name);
         }
-
-        public async Task<string> GetLastInsertedDesignationCodeAsync()
-        {
-            var designations = await _designationRepository.GetAllAsync();
-            var lastInsertedDesignation = designations
-                .OrderByDescending(d => d.DesignationCode)
-                .FirstOrDefault();
-
-            return lastInsertedDesignation?.DesignationCode;
-        }
-
     }
 }
 

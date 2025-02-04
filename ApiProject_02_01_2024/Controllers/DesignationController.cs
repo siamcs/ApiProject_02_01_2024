@@ -1,5 +1,6 @@
 ﻿
 using ApiProject_02_01_2024.DTOs;
+using ApiProject_02_01_2024.Models;
 using ApiProject_02_01_2024.Services.DesignationService;
 using Microsoft.AspNetCore.Mvc;
 
@@ -71,7 +72,10 @@ namespace ApiProject_02_01_2024.Controllers
         {
             try
             {
-               
+                if (await _designationService.IsExistAsync(designationVM.DesignationName))
+                {
+                    return Ok(new { isSuccess = false, message = $"Already  Exists!", isDuplicate = true });
+                }
                 if (string.IsNullOrEmpty(designationVM.DesignationCode))
                 {
                     designationVM.DesignationCode = await _designationService.GenerateNextDesignationCodeAsync();
@@ -94,10 +98,14 @@ namespace ApiProject_02_01_2024.Controllers
 
 
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] DesignationVM  designationVM)
+        public async Task<IActionResult> Update(int id, DesignationVM  designationVM)
         {
             try
             {
+                if (await _designationService.IsExistAsync(designationVM.DesignationName))
+                {
+                    return Ok(new { isSuccess = false, message = $"Already  Exists!", isDuplicate = true });
+                }
                 if (id != designationVM.DesignationAutoId)
                 {
                     return BadRequest("Bank ID mismatch");

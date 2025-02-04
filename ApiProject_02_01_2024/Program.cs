@@ -25,6 +25,7 @@ builder.Services.AddCors(options =>
 });
 
 
+
 // Add services for your repositories and services
 builder.Services.AddScoped(typeof(IGenericRepository<,>), typeof(GenericRepository<,>));
 builder.Services.AddScoped<IBankService, BankService>(); // Injecting the BankService
