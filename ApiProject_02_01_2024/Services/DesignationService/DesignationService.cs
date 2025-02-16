@@ -69,7 +69,8 @@ namespace ApiProject_02_01_2024.Services.DesignationService
                 DesignationName = designation.DesignationName,
                 ShortName = designation.ShortName,
                 LDate = designation.LDate,
-                ModifyDate = designation.ModifyDate
+                ModifyDate = designation.ModifyDate,
+                PhotoUrl = GetPhotoUrl(designation.DesignationAutoId)
             };
         }
 
@@ -104,7 +105,7 @@ namespace ApiProject_02_01_2024.Services.DesignationService
                             photo.ImgSize = designationVM.Photo.Length;
                         };
 
-                        // Add photo to the database
+                  
                         await hrmPhoto.AddAsync(photo);
                     }
                 }
@@ -299,9 +300,9 @@ namespace ApiProject_02_01_2024.Services.DesignationService
         }
 
 
-        public async Task<bool> IsExistAsync(string name)
+        public async Task<bool> IsExistAsync(string name,int code)
         {
-            return await _designationRepository.All().AnyAsync(x => x.DesignationName == name);
+            return await _designationRepository.All().AnyAsync(x => x.DesignationName == name && x.DesignationAutoId !=code);
         }
     }
 }

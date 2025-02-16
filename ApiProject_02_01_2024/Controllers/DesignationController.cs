@@ -72,7 +72,7 @@ namespace ApiProject_02_01_2024.Controllers
         {
             try
             {
-                if (await _designationService.IsExistAsync(designationVM.DesignationName))
+                if (await _designationService.IsExistAsync(designationVM.DesignationName, designationVM.DesignationAutoId))
                 {
                     return Ok(new { isSuccess = false, message = $"Already  Exists!", isDuplicate = true });
                 }
@@ -102,7 +102,7 @@ namespace ApiProject_02_01_2024.Controllers
         {
             try
             {
-                if (await _designationService.IsExistAsync(designationVM.DesignationName))
+                if (await _designationService.IsExistAsync(designationVM.DesignationName,designationVM.DesignationAutoId))
                 {
                     return Ok(new { isSuccess = false, message = $"Already  Exists!", isDuplicate = true });
                 }
