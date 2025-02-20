@@ -29,8 +29,9 @@ builder.Services.AddCors(options =>
 // Add services for your repositories and services
 builder.Services.AddScoped(typeof(IGenericRepository<,>), typeof(GenericRepository<,>));
 builder.Services.AddScoped<IBankService, BankService>(); // Injecting the BankService
-builder.Services.AddScoped<IDesignationService, DesignationService>(); 
+builder.Services.AddScoped<IDesignationService, DesignationService>();
 
+builder.Services.AddHttpContextAccessor();
 
 
 
@@ -64,6 +65,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
     app.UseDeveloperExceptionPage();
 }
+app.UseStaticFiles(new StaticFileOptions
+{
+    ServeUnknownFileTypes = true
+});
+
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAnyOrigin");

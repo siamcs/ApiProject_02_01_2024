@@ -1,6 +1,7 @@
 ﻿using ApiProject_02_01_2024.DTOs;
 using ApiProject_02_01_2024.Models;
 using ApiProject_02_01_2024.Repository;
+using Azure.Core;
 using Microsoft.EntityFrameworkCore;
 
 using System.Net.NetworkInformation;
@@ -13,16 +14,20 @@ namespace ApiProject_02_01_2024.Services.DesignationService
         private readonly IGenericRepository<Designation, int> _designationRepository;
         private readonly IGenericRepository<HrmEmpDigitalSignature, int> hrmPhoto;
         private readonly IWebHostEnvironment _web;
-        public DesignationService(IGenericRepository<Designation, int> designationRepository, IGenericRepository<HrmEmpDigitalSignature, int> hrmPhoto, IWebHostEnvironment web)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+     
+        public DesignationService(IGenericRepository<Designation, int> designationRepository, IGenericRepository<HrmEmpDigitalSignature, int> hrmPhoto, IWebHostEnvironment web, IHttpContextAccessor httpContextAccessor)
         {
             _designationRepository = designationRepository;
             this.hrmPhoto = hrmPhoto;
             _web = web;
+            _httpContextAccessor = httpContextAccessor;
         }
-
+       
 
         public IEnumerable<CommonSelectModelVM> DropSelection()
         {
+           
             return _designationRepository
                 .All() 
                 .Select(x => new CommonSelectModelVM
@@ -35,6 +40,7 @@ namespace ApiProject_02_01_2024.Services.DesignationService
         public async Task<List<DesignationVM>> GetAllAsync()
         {
             var  designations=await _designationRepository.GetAllAsync();
+            var baseUrl = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}";
             return designations.Select(d => new DesignationVM
             {
                 DesignationAutoId=d.DesignationAutoId,
@@ -43,7 +49,10 @@ namespace ApiProject_02_01_2024.Services.DesignationService
                 ShortName = d.ShortName,
                 LDate = d.LDate,
                 ModifyDate = d.ModifyDate,
-                ProfilePicture = d.ProfilePicture,
+                //ProfilePicture = d.ProfilePicture,
+                ProfilePicture = !string.IsNullOrEmpty(d.ProfilePicture)
+            ? $"{baseUrl}/images/{d.ProfilePicture}" // Full image URL
+            : null,
                 PhotoUrl = GetPhotoUrl(d.DesignationAutoId)
             }).ToList();
         }
@@ -60,6 +69,7 @@ namespace ApiProject_02_01_2024.Services.DesignationService
         }
         public async Task<DesignationVM> GetByIdAsync(int id)
         {
+            var baseUrl = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}";
             var designation = await _designationRepository.GetByIdAsync(id);
             if(designation == null)
             {
@@ -73,7 +83,10 @@ namespace ApiProject_02_01_2024.Services.DesignationService
                 ShortName = designation.ShortName,
                 LDate = designation.LDate,
                 ModifyDate = designation.ModifyDate,
-                ProfilePicture=designation.ProfilePicture,
+                //ProfilePicture=designation.ProfilePicture,
+                ProfilePicture = !string.IsNullOrEmpty(designation.ProfilePicture)
+            ? $"{baseUrl}/images/{designation.ProfilePicture}" // Full image URL
+            : null,
                 PhotoUrl = GetPhotoUrl(designation.DesignationAutoId)
             };
         }
@@ -86,7 +99,9 @@ namespace ApiProject_02_01_2024.Services.DesignationService
             if (designationVM.ProfileImage != null && !string.IsNullOrEmpty(designationVM.DesignationCode) && !string.IsNullOrEmpty(designationVM.DesignationName))
             {
                 string uploadsFolder = Path.Combine(_web.WebRootPath, "images");
-                uniqueFileName = $"{designationVM.DesignationCode}_{designationVM.DesignationName}_{designationVM.ProfileImage.FileName}";
+               // uniqueFileName = $"{designationVM.DesignationCode}_{designationVM.DesignationName}_{designationVM.ProfileImage.FileName}";
+                uniqueFileName = $"{designationVM.DesignationCode}_{designationVM.DesignationName}_{designationVM.ProfileImage.FileName.Replace(" ", "_")}";
+
                 string filePath = Path.Combine(uploadsFolder, uniqueFileName);
                 // Ensure the folder exists
                 if (!Directory.Exists(uploadsFolder))

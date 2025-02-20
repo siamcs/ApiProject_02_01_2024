@@ -50,7 +50,7 @@ namespace ApiProject_02_01_2024.Controllers
 
         [HttpGet]
         public async Task<IActionResult> Index()
-        {
+           {
             try
             {
                 var designations = await _designationService.GetAllAsync();
