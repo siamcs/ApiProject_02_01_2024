@@ -23,5 +23,11 @@ namespace ApiProject_02_01_2024.DTOs
         public string? PhotoUrl { get; set; }
         public bool IsClearPhoto { get; set; }
         public IFormFile? Photo { get; set; }
+
+
+        public string? ProfilePicture { get; set; } = string.Empty;
+
+        public IFormFile? ProfileImage { get; set; }
+        public bool IsClearPhotoProfile { get; set; }
     }
 }

@@ -12,10 +12,12 @@ namespace ApiProject_02_01_2024.Services.DesignationService
     {
         private readonly IGenericRepository<Designation, int> _designationRepository;
         private readonly IGenericRepository<HrmEmpDigitalSignature, int> hrmPhoto;
-        public DesignationService(IGenericRepository<Designation, int> designationRepository, IGenericRepository<HrmEmpDigitalSignature, int> hrmPhoto)
+        private readonly IWebHostEnvironment _web;
+        public DesignationService(IGenericRepository<Designation, int> designationRepository, IGenericRepository<HrmEmpDigitalSignature, int> hrmPhoto, IWebHostEnvironment web)
         {
             _designationRepository = designationRepository;
             this.hrmPhoto = hrmPhoto;
+            _web = web;
         }
 
 
@@ -41,6 +43,7 @@ namespace ApiProject_02_01_2024.Services.DesignationService
                 ShortName = d.ShortName,
                 LDate = d.LDate,
                 ModifyDate = d.ModifyDate,
+                ProfilePicture = d.ProfilePicture,
                 PhotoUrl = GetPhotoUrl(d.DesignationAutoId)
             }).ToList();
         }
@@ -70,8 +73,33 @@ namespace ApiProject_02_01_2024.Services.DesignationService
                 ShortName = designation.ShortName,
                 LDate = designation.LDate,
                 ModifyDate = designation.ModifyDate,
+                ProfilePicture=designation.ProfilePicture,
                 PhotoUrl = GetPhotoUrl(designation.DesignationAutoId)
             };
+        }
+
+
+        private string UploadedFile(DesignationVM designationVM)
+        {
+            string uniqueFileName = null;
+
+            if (designationVM.ProfileImage != null && !string.IsNullOrEmpty(designationVM.DesignationCode) && !string.IsNullOrEmpty(designationVM.DesignationName))
+            {
+                string uploadsFolder = Path.Combine(_web.WebRootPath, "images");
+                uniqueFileName = $"{designationVM.DesignationCode}_{designationVM.DesignationName}_{designationVM.ProfileImage.FileName}";
+                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+                // Ensure the folder exists
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+                // Save the file
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    designationVM.ProfileImage.CopyTo(fileStream);
+                }
+            }
+            return uniqueFileName;
         }
 
         public async Task<bool> SaveAsync(DesignationVM designationVM)
@@ -79,10 +107,12 @@ namespace ApiProject_02_01_2024.Services.DesignationService
             await _designationRepository.BeginTransactionAsync();
             try
             {
+                string uniqueFileName = UploadedFile(designationVM);
                 Designation designation = new Designation();
                 designation.DesignationCode = await GenerateNextDesignationCodeAsync();
                 designation.DesignationName = designationVM.DesignationName ?? string.Empty;
                 designation.ShortName = designationVM.ShortName ?? string.Empty;
+                designation.ProfilePicture = UploadedFile(designationVM) ?? string.Empty;
                 designation.LDate = designationVM.LDate ?? DateTime.Now;
                 designation.ModifyDate = designationVM.ModifyDate;
                 designation.LIP = GetLocalIP() ?? string.Empty;
@@ -136,6 +166,7 @@ namespace ApiProject_02_01_2024.Services.DesignationService
                 designation.DesignationCode = designationVM.DesignationCode;
                 designation.DesignationName = designationVM.DesignationName;
                 designation.ShortName = designationVM.ShortName ?? " ";
+                designation.ProfilePicture = UploadedFile(designationVM) ?? string.Empty;
                 designation.LDate = designationVM.LDate ?? new DateTime();
                 designation.ModifyDate = designationVM.ModifyDate ?? new DateTime();
                 designation.LIP = GetLocalIP();
@@ -188,8 +219,9 @@ namespace ApiProject_02_01_2024.Services.DesignationService
                 await _designationRepository.CommitTransactionAsync();
                 return true;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 await _designationRepository.RollbackTransactionAsync();
                 return false;
             }

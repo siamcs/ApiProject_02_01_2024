@@ -55,6 +55,8 @@ namespace ApiProject_02_01_2024.Models
         [Column(TypeName = "datetime")]
         public DateTime? ModifyDate { get; set; }
 
+        [Required,MaxLength(300)]
+        public string? ProfilePicture { get; set; } = string.Empty;
 
     }
 }
