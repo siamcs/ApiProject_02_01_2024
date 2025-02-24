@@ -14,14 +14,14 @@ namespace ApiProject_02_01_2024.Services.DesignationService
         private readonly IGenericRepository<Designation, int> _designationRepository;
         private readonly IGenericRepository<HrmEmpDigitalSignature, int> hrmPhoto;
         private readonly IWebHostEnvironment _web;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+   
      
-        public DesignationService(IGenericRepository<Designation, int> designationRepository, IGenericRepository<HrmEmpDigitalSignature, int> hrmPhoto, IWebHostEnvironment web, IHttpContextAccessor httpContextAccessor)
+        public DesignationService(IGenericRepository<Designation, int> designationRepository, IGenericRepository<HrmEmpDigitalSignature, int> hrmPhoto, IWebHostEnvironment web)
         {
             _designationRepository = designationRepository;
             this.hrmPhoto = hrmPhoto;
             _web = web;
-            _httpContextAccessor = httpContextAccessor;
+         
         }
        
 
@@ -67,9 +67,11 @@ namespace ApiProject_02_01_2024.Services.DesignationService
         }
         public async Task<DesignationVM> GetByIdAsync(int id)
         {
-            var baseUrl = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}";
+            
+            
             var designation = await _designationRepository.GetByIdAsync(id);
-            if(designation == null)
+            var photoFolder = $"https://localhost:7046/images/{designation.ProfilePicture}" ;
+            if (designation == null)
             {
                 return null;
             }
@@ -81,7 +83,7 @@ namespace ApiProject_02_01_2024.Services.DesignationService
                 ShortName = designation.ShortName,
                 LDate = designation.LDate,
                 ModifyDate = designation.ModifyDate,
-                ProfilePicture=designation.ProfilePicture,
+                ProfilePicture=photoFolder,
                
                 PhotoUrl = GetPhotoUrl(designation.DesignationAutoId)
             };
@@ -95,7 +97,6 @@ namespace ApiProject_02_01_2024.Services.DesignationService
             if (designationVM.ProfileImage != null && !string.IsNullOrEmpty(designationVM.DesignationCode) && !string.IsNullOrEmpty(designationVM.DesignationName))
             {
                 string uploadsFolder = Path.Combine(_web.WebRootPath, "images");
-               // uniqueFileName = $"{designationVM.DesignationCode}_{designationVM.DesignationName}_{designationVM.ProfileImage.FileName}";
                 uniqueFileName = $"{designationVM.DesignationCode}_{designationVM.DesignationName}_{designationVM.ProfileImage.FileName.Replace(" ", "_")}";
 
                 string filePath = Path.Combine(uploadsFolder, uniqueFileName);
@@ -179,11 +180,21 @@ namespace ApiProject_02_01_2024.Services.DesignationService
                 designation.DesignationCode = designationVM.DesignationCode;
                 designation.DesignationName = designationVM.DesignationName;
                 designation.ShortName = designationVM.ShortName ?? " ";
-                designation.ProfilePicture = UploadedFile(designationVM) ?? string.Empty;
+               // designation.ProfilePicture = UploadedFile(designationVM) ?? string.Empty;
                 designation.LDate = designationVM.LDate ?? new DateTime();
                 designation.ModifyDate = designationVM.ModifyDate ?? new DateTime();
                 designation.LIP = GetLocalIP();
                 designation.LMAC = GetMacAddress();
+                if (designationVM.IsClearPhotoProfile)
+                {
+                    designation.ProfilePicture = string.Empty; 
+                }
+
+                string newProfilePicture = UploadedFile(designationVM);
+                if (!string.IsNullOrEmpty(newProfilePicture))
+                {
+                    designation.ProfilePicture = newProfilePicture; 
+                }
                 await _designationRepository.UpdateAsync(designation);
 
                 if (designationVM.IsClearPhoto)

@@ -68,7 +68,7 @@ namespace ApiProject_02_01_2024.Controllers
 
         #region Post
         [HttpPost("Create")]
-        public async Task<IActionResult> Create(DesignationVM designationVM)
+        public async Task<IActionResult> Create( DesignationVM designationVM)
         {
             try
             {
