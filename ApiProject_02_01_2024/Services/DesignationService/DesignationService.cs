@@ -40,7 +40,7 @@ namespace ApiProject_02_01_2024.Services.DesignationService
         public async Task<List<DesignationVM>> GetAllAsync()
         {
             var  designations=await _designationRepository.GetAllAsync();
-            var baseUrl = $"{_httpContextAccessor.HttpContext.Request.Scheme}://{_httpContextAccessor.HttpContext.Request.Host}";
+         
             return designations.Select(d => new DesignationVM
             {
                 DesignationAutoId=d.DesignationAutoId,
@@ -49,10 +49,8 @@ namespace ApiProject_02_01_2024.Services.DesignationService
                 ShortName = d.ShortName,
                 LDate = d.LDate,
                 ModifyDate = d.ModifyDate,
-                //ProfilePicture = d.ProfilePicture,
-                ProfilePicture = !string.IsNullOrEmpty(d.ProfilePicture)
-            ? $"{baseUrl}/images/{d.ProfilePicture}" // Full image URL
-            : null,
+                ProfilePicture = d.ProfilePicture,
+   
                 PhotoUrl = GetPhotoUrl(d.DesignationAutoId)
             }).ToList();
         }
@@ -83,10 +81,8 @@ namespace ApiProject_02_01_2024.Services.DesignationService
                 ShortName = designation.ShortName,
                 LDate = designation.LDate,
                 ModifyDate = designation.ModifyDate,
-                //ProfilePicture=designation.ProfilePicture,
-                ProfilePicture = !string.IsNullOrEmpty(designation.ProfilePicture)
-            ? $"{baseUrl}/images/{designation.ProfilePicture}" // Full image URL
-            : null,
+                ProfilePicture=designation.ProfilePicture,
+               
                 PhotoUrl = GetPhotoUrl(designation.DesignationAutoId)
             };
         }
@@ -116,6 +112,7 @@ namespace ApiProject_02_01_2024.Services.DesignationService
             }
             return uniqueFileName;
         }
+
 
         public async Task<bool> SaveAsync(DesignationVM designationVM)
         {
@@ -165,6 +162,7 @@ namespace ApiProject_02_01_2024.Services.DesignationService
             }
            
         }
+
 
         public async Task<bool> UpdateAsync(DesignationVM designationVM)
         {
